@@ -77,7 +77,8 @@ class MainViewController: UIViewController {
     // 버튼 클릭시에 호출되는 메서드
     @objc
     private func addButtonTapped() {
-        print("버튼 클릭됨") // 확인용 메세지 출력
+        let phoneBookVC = PhoneBookViewController()
+        navigationController?.pushViewController(phoneBookVC, animated: true)
     }
     
 }

@@ -57,6 +57,7 @@ class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegat
     
     // 델리게이트 메서드 : 셀이 선택되었을 때 호출
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         // 선택된 포켓몬 데이터를 가져온다
         let pokemon = pokemonCell[indexPath.row]
         
