@@ -17,7 +17,7 @@ class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegat
     weak var inventoryDelegate: InventoryTableViewDelegate?
     
     // 포켓몬 데이터 저장 배열
-    private var pokemonCell: [(name: String, phoneNumber: String)] = []
+    private var pokemonCell: [(name: String, phoneNumber: String, imageURL: String?)] = []
     
     // 초기화 메서드 : 코드로 테이블 뷰를 생성할 때 호출
     init() {
@@ -38,7 +38,7 @@ class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegat
     }
     
     // 외부에서 포켓몬 데이터를 설정하고 테이블 뷰를 갱신하는 메서드
-    func configure(with pokemons: [(name: String, phoneNumber: String)]) {
+    func configure(with pokemons: [(name: String, phoneNumber: String, imageURL: String?)]) {
         self.pokemonCell = pokemons
         reloadData()
     }
@@ -50,15 +50,11 @@ class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegat
     
     // 데이터 소스 메서드 : 각 행의 셀을 반환
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        // 등록된 셀을 재사용 큐에서 가져옴
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "InventoryCell", for: indexPath) as? InventoryTableViewCell else {
-            return UITableViewCell() // 기본 셀 반환
+            return UITableViewCell()
         }
-        
-        // 현재 인덱스의 데이터를 가져와서 셀을 구성
         let pokemon = pokemonCell[indexPath.row]
-        cell.configure(name: pokemon.name, phoneNumber: pokemon.phoneNumber)
+        cell.configure(name: pokemon.name, phoneNumber: pokemon.phoneNumber, imageUrl: pokemon.imageURL)
         return cell
     }
     

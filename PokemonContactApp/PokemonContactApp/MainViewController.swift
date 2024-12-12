@@ -23,19 +23,18 @@ class MainViewController: UIViewController, UITableViewDelegate {
     private var contacts: [PokemonEntity] = []
     
     // 초기 데이터 : 포켓몬 이름과 전화번호로 구성된 배열
-    private let pokemonCell = [
-        (name: "포켓몬 1", phoneNumber: "010-0000-0000"),
-        (name: "포켓몬 2", phoneNumber: "010-2222-2222"),
-        (name: "포켓몬 3", phoneNumber: "010-3333-3333"),
-        (name: "포켓몬 4", phoneNumber: "010-4444-4444"),
-        (name: "포켓몬 5", phoneNumber: "010-5555-5555")
+    private let pokemonCell: [(name: String, phoneNumber: String, imageURL: String?)] = [
+        (name: "포켓몬 1", phoneNumber: "010-0000-0000", imageURL: nil),
+        (name: "포켓몬 2", phoneNumber: "010-2222-2222", imageURL: nil),
+        (name: "포켓몬 3", phoneNumber: "010-3333-3333", imageURL: nil),
+        (name: "포켓몬 4", phoneNumber: "010-4444-4444", imageURL: nil),
+        (name: "포켓몬 5", phoneNumber: "010-5555-5555", imageURL: nil)
     ]
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        inventoryTableView.configure(with: pokemonCell) // 테이블 뷰에 데이터 설정
         fetchContacts()
 
     }
@@ -80,10 +79,8 @@ class MainViewController: UIViewController, UITableViewDelegate {
     }
 
     private func fetchContacts() {
-        // CoreData에서 연락처 데이터를 가져옴
-        contacts = CoreDataManager.shared.fetchContacts()
-        let data = contacts.map { ($0.name ?? "", $0.phoneNumber ?? "") }
-        inventoryTableView.configure(with: data)
+        let contacts = CoreDataManager.shared.fetchContacts()
+        inventoryTableView.configure(with: contacts)
     }
 
     @objc private func addButtonTapped() {
@@ -95,9 +92,9 @@ class MainViewController: UIViewController, UITableViewDelegate {
 
 // ChatGPT 사용했습니다.
 extension MainViewController: PhoneBookViewControllerDelegate {
-    func didAddContact(name: String, phoneNumber: String) {
-        CoreDataManager.shared.createContact(name: name, phoneNumber: phoneNumber, imageURL: nil)
-        fetchContacts() // 연락처 추가 후 데이터를 다시 가져옴
+    func didAddContact(name: String, phoneNumber: String, imageURL: String?) {
+        CoreDataManager.shared.createContact(name: name, phoneNumber: phoneNumber, imageURL: imageURL)
+        fetchContacts() // 연락처 추가 후 데이터를 다시 가져옵니다.
     }
 }
 

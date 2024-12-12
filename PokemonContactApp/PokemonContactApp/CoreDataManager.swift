@@ -29,6 +29,18 @@ class CoreDataManager {
     }
 
     func createContact(name: String, phoneNumber: String, imageURL: String?) {
+        // 이미지 URL이 없는 경우 저장하지 않음
+        guard let imageURL = imageURL, !imageURL.isEmpty else {
+            print("Skipping save because imageURL is nil or empty.")
+            return
+        }
+        
+        // 중복 데이터 확인
+        guard !contactExists(name: name, phoneNumber: phoneNumber) else {
+            print("Contact already exists. Skipping save.")
+            return
+        }
+
         let entityDescription = NSEntityDescription.entity(forEntityName: "PokemonEntity", in: context)
         print("Entity Description: \(String(describing: entityDescription))")
         guard let entityDescription = entityDescription else {
@@ -42,14 +54,27 @@ class CoreDataManager {
         saveContext()
     }
 
-    // Read
-    func fetchContacts() -> [PokemonEntity] {
+    func fetchContacts() -> [(name: String, phoneNumber: String, imageURL: String?)] {
         let request: NSFetchRequest<PokemonEntity> = PokemonEntity.fetchRequest()
         do {
-            return try context.fetch(request)
+            let results = try context.fetch(request)
+            return results.map { ($0.name ?? "", $0.phoneNumber ?? "", $0.imageURL) }
         } catch {
             print("Fetch Error: \(error)")
             return []
+        }
+    }
+
+    // 중복 확인 메서드 추가
+    private func contactExists(name: String, phoneNumber: String) -> Bool {
+        let fetchRequest: NSFetchRequest<PokemonEntity> = PokemonEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@ AND phoneNumber == %@", name, phoneNumber)
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Error checking contact existence: \(error)")
+            return false
         }
     }
 

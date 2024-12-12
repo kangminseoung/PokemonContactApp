@@ -11,7 +11,7 @@ import SnapKit
 
 // Delegate 프로토콜 정의
 protocol PhoneBookViewControllerDelegate: AnyObject {
-    func didAddContact(name: String, phoneNumber: String)
+    func didAddContact(name: String, phoneNumber: String, imageURL: String?)
 }
 
 class PhoneBookViewController: UIViewController {
@@ -24,6 +24,9 @@ class PhoneBookViewController: UIViewController {
     private let nameTextField = UITextField() // 이름 입력을 위한 텍스트 필드
     private let phoneNumberTextField = UITextField() // 전화번호 입력을 위한 텍스트 필드
     private let randomImageButton = UIButton(type: .system) // 랜덤 이미지를 생성하는 버튼
+    
+    private var selectedImageURL: String? // 선택된 이미지 URL 저장
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,23 +98,29 @@ class PhoneBookViewController: UIViewController {
     }
     
     // 랜덤 이미지 버튼 클릭 시 호출되는 메서드
-    @objc
-    private func randomImageButtonTapped() {
-        PokemonAPIManager.shared.pokemonData { [weak self] Pokemon in
-            guard let self = self else { return } // self가 nil이면 종료
-            guard let pokemon = Pokemon else { // 포켓몬 데이터를 가져오지 못한 경우
+    @objc private func randomImageButtonTapped() {
+        PokemonAPIManager.shared.pokemonData { [weak self] pokemon in
+            guard let self = self else { return }
+            guard let pokemon = pokemon else {
+                DispatchQueue.main.async {
+                    self.profileImageView.image = UIImage(systemName: "person.circle")
+                }
                 return
             }
-            
-            DispatchQueue.main.async { // 메인 스레드에서 UI 업데이트
-                self.nameTextField.text =  pokemon.name.capitalized // 포켓몬 이름 설정
-                self.phoneNumberTextField.text = self.randomPhoneNumber() // 랜덤 전화번호 생성 후 설정
-                
-                if let imageUrlString = pokemon.sprites.frontDefault, // 포켓몬 이미지 URL이 있는 경우
-                   let imageUrl = URL(string: imageUrlString) { // URL 변환 성공
-                    self.loadImage(from: imageUrl) // 이미지 로드 메서드 호출
+
+            DispatchQueue.main.async {
+                self.nameTextField.text = pokemon.name.capitalized
+                self.phoneNumberTextField.text = self.randomPhoneNumber()
+
+                if let imageUrlString = pokemon.sprites.frontDefault {
+                    self.loadImage(from: URL(string: imageUrlString)!)
+                    self.delegate?.didAddContact(
+                        name: pokemon.name.capitalized,
+                        phoneNumber: self.randomPhoneNumber(),
+                        imageURL: imageUrlString
+                    )
                 } else {
-                    self.profileImageView.image = UIImage(systemName: "person.circle") // 기본 이미지 설정
+                    self.profileImageView.image = UIImage(systemName: "person.circle")
                 }
             }
         }
@@ -125,14 +134,18 @@ class PhoneBookViewController: UIViewController {
         return "010-\(first)-\(second)"
     }
     
+    
+    
     // URL에서 이미지 로드하는 메서드
     private func loadImage(from url: URL) {
-        
-        DispatchQueue.global().async { // 비동기 작업
-            if let data = try? Data(contentsOf: url), // URL에서 데이터 가져옴
-                let image = UIImage(data: data) { // 데이터 UIImage로 변환
-                DispatchQueue.main.async { // 메인 스레드에서 UI 업데이트
-                    self.profileImageView.image = image // 프로필 이미지 뷰에 이미지 설정
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.profileImageView.image = image
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.profileImageView.image = UIImage(systemName: "person.circle")
                 }
             }
         }
@@ -148,7 +161,7 @@ class PhoneBookViewController: UIViewController {
         }
 
         // Delegate 호출로 데이터 전달
-        delegate?.didAddContact(name: name, phoneNumber: phoneNumber)
+        delegate?.didAddContact(name: name, phoneNumber: phoneNumber, imageURL: selectedImageURL)
         navigationController?.popViewController(animated: true)
     }
 }
