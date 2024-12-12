@@ -8,7 +8,16 @@
 import UIKit
 import SnapKit
 
+
+// Delegate 프로토콜 정의
+protocol PhoneBookViewControllerDelegate: AnyObject {
+    func didAddContact(name: String, phoneNumber: String)
+}
+
 class PhoneBookViewController: UIViewController {
+    
+    // Delegate 프로퍼티 정의
+    weak var delegate: PhoneBookViewControllerDelegate?
     
     // UI 요소
     private let profileImageView = UIImageView() // 프로필 이미지를 표시할 이미지 뷰
@@ -129,14 +138,17 @@ class PhoneBookViewController: UIViewController {
         }
     }
     
-    // 적용 버튼 클릭 시 호출되는 메서드
-    @objc
-    private func applyButtonTapped() {
-        print("적용 버튼 클릭")
-        navigationController?.popViewController(animated: true) // 이전화면 돌아가기
-    }
-}
+    
 
-#Preview("PhoneBookViewController") {
-    PhoneBookViewController()
+    @objc private func applyButtonTapped() {
+        guard let name = nameTextField.text, !name.isEmpty,
+              let phoneNumber = phoneNumberTextField.text, !phoneNumber.isEmpty else {
+            print("이름과 전화번호를 입력해야 합니다.")
+            return
+        }
+
+        // Delegate 호출로 데이터 전달
+        delegate?.didAddContact(name: name, phoneNumber: phoneNumber)
+        navigationController?.popViewController(animated: true)
+    }
 }

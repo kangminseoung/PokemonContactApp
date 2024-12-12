@@ -8,7 +8,8 @@
 import UIKit
 import SnapKit
 
-class MainViewController: UIViewController {
+class MainViewController: UIViewController, UITableViewDelegate {
+    
     
     // 타이틀 레이블 : 화면 상단의 "친구 목록" 표시
     private let titleLabel = UILabel()
@@ -18,6 +19,8 @@ class MainViewController: UIViewController {
     
     // 테이블 뷰 : 친구 목록을 표시하는 테이블 뷰
     private let inventoryTableView = InventoryTableView()
+    
+    private var contacts: [PokemonEntity] = []
     
     // 초기 데이터 : 포켓몬 이름과 전화번호로 구성된 배열
     private let pokemonCell = [
@@ -33,6 +36,7 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         inventoryTableView.configure(with: pokemonCell) // 테이블 뷰에 데이터 설정
+        fetchContacts()
 
     }
     
@@ -72,16 +76,38 @@ class MainViewController: UIViewController {
             $0.top.equalTo(titleLabel.snp.bottom).offset(30) // 타이틀 레이블 하단에서 10
             $0.left.right.bottom.equalToSuperview() // 좌우 및 하단에 고정
         }
+        inventoryTableView.delegate = inventoryTableView
     }
-    
-    // 버튼 클릭시에 호출되는 메서드
-    @objc
-    private func addButtonTapped() {
+
+    private func fetchContacts() {
+        // CoreData에서 연락처 데이터를 가져옴
+        contacts = CoreDataManager.shared.fetchContacts()
+        let data = contacts.map { ($0.name ?? "", $0.phoneNumber ?? "") }
+        inventoryTableView.configure(with: data)
+    }
+
+    @objc private func addButtonTapped() {
         let phoneBookVC = PhoneBookViewController()
+        phoneBookVC.delegate = self
         navigationController?.pushViewController(phoneBookVC, animated: true)
     }
-    
 }
-#Preview("MainViewController") {
-    MainViewController()
+
+// ChatGPT 사용했습니다.
+extension MainViewController: PhoneBookViewControllerDelegate {
+    func didAddContact(name: String, phoneNumber: String) {
+        CoreDataManager.shared.createContact(name: name, phoneNumber: phoneNumber, imageURL: nil)
+        fetchContacts() // 연락처 추가 후 데이터를 다시 가져옴
+    }
+}
+
+extension MainViewController: InventoryTableViewDelegate {
+    func didDeleteContact(at indexPath: IndexPath) {
+        // CoreData에서 삭제 처리
+        let contactToDelete = contacts[indexPath.row]
+        CoreDataManager.shared.deleteContact(contact: contactToDelete)
+        
+        // 데이터 동기화 및 테이블 뷰 갱신
+        fetchContacts()
+    }
 }

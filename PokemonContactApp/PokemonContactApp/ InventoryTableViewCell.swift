@@ -83,8 +83,3 @@ class InventoryTableViewCell: UITableViewCell {
         phoneNumberLabel.text = phoneNumber // 전화번호 레이블에 텍스트 설정
     }
 }
-
-
-#Preview("MainViewController") {
-    MainViewController()
-}

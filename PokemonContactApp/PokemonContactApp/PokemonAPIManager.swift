@@ -8,6 +8,7 @@
 import Foundation
 
 struct Pokemon: Decodable {
+    
     let name: String // 포켓몬의 이름
     let sprites: PokemonImageData // 포켓몬의 이미지 데이터를 담고있는 구조체
     
@@ -23,6 +24,7 @@ struct Pokemon: Decodable {
 
 // 'PokemonAPIManager' 클래스는 API 호출을 관리하는 역활
 class PokemonAPIManager {
+    
     // 싱글톤 패턴 구현: 전역에서 `shared`를 통해 동일한 인스턴스를 사용
     static let shared = PokemonAPIManager()
     

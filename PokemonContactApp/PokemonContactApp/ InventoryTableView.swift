@@ -7,7 +7,14 @@
 
 import UIKit
 
+protocol InventoryTableViewDelegate: AnyObject {
+    func didDeleteContact(at indexPath: IndexPath)
+}
+
+
 class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegate {
+    
+    weak var inventoryDelegate: InventoryTableViewDelegate?
     
     // 포켓몬 데이터 저장 배열
     private var pokemonCell: [(name: String, phoneNumber: String)] = []
@@ -66,5 +73,26 @@ class InventoryTableView: UITableView, UITableViewDataSource, UITableViewDelegat
         
         // 선택된 셀의 선택 상태를 해제
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // 스와이프 삭제 기능 추가
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "삭제") { [weak self] _, _, completionHandler in
+            guard let self = self else { return }
+            
+            // 내부 데이터 배열에서 삭제
+            self.pokemonCell.remove(at: indexPath.row)
+            
+            // 테이블 뷰 갱신
+            self.deleteRows(at: [indexPath], with: .fade)
+            
+            // Delegate를 통해 삭제 이벤트 전달
+            self.inventoryDelegate?.didDeleteContact(at: indexPath)
+            
+            // 완료 처리
+            completionHandler(true)
+        }
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }
